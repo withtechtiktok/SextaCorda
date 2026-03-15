@@ -7,7 +7,7 @@
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" type="text/css" href="https://jtab.t-0.it/css/jtab.css">
-    <script src="https://jtab.t-0.it/js/jtab.js"></script>
+    <script src="https://unpkg.com/vexchords/dist/vexchords.dev.js"></script>
 
     <style>
         :root { --primary: #d35400; --dark: #1a1a1a; --bg: #fdfdfd; }
@@ -88,32 +88,57 @@
         }
 
         function abrir(id) {
-            const c = dados.find(x => x.id == id);
-            document.getElementById('sessao-lista').style.display = 'none';
-            document.getElementById('tela-cifra').style.display = 'flex';
-            
-            document.getElementById('view-titulo').innerText = c.titulo;
-            document.getElementById('view-artista').innerText = c.artista;
-            document.getElementById('view-conteudo').innerHTML = c.conteudo;
+    const c = dados.find(x => x.id == id);
+    document.getElementById('sessao-lista').style.display = 'none';
+    document.getElementById('tela-cifra').style.display = 'flex';
+    
+    document.getElementById('view-titulo').innerText = c.titulo;
+    document.getElementById('view-artista').innerText = c.artista;
+    document.getElementById('view-conteudo').innerHTML = c.conteudo;
 
-            // GERAR DESENHOS COM JTAB
-            const dic = document.getElementById('dicionario-desenhos');
-            dic.innerHTML = "";
-            
-            // Pega os acordes entre <b>
-            const encontrados = c.conteudo.match(/<b>(.*?)<\/b>/g) || [];
-            const unicos = [...new Set(encontrados.map(m => m.replace(/<\/?b>/g, '').trim()))];
+    const dic = document.getElementById('dicionario-desenhos');
+    dic.innerHTML = "";
+    
+    const encontrados = c.conteudo.match(/<b>(.*?)<\/b>/g) || [];
+    const unicos = [...new Set(encontrados.map(m => m.replace(/<\/?b>/g, '').trim()))];
 
-            unicos.forEach(ac => {
-                const item = document.createElement('div');
-                item.className = "jtab-container";
-                item.innerHTML = `<span class="jtab-label">${ac}</span><div class="jtab">${ac}</div>`;
-                dic.appendChild(item);
+    unicos.forEach(ac => {
+        // Criar o container do acorde
+        const container = document.createElement('div');
+        container.style.marginBottom = "20px";
+        container.innerHTML = `<strong style="color:var(--primary)">${ac}</strong><div id="chord-${ac}"></div>`;
+        dic.appendChild(container);
+
+        // Desenhar o acorde usando VexChords
+        // Esta biblioteca desenha o "esqueleto" do acorde
+        try {
+            const selector = `#chord-${ac}`;
+            // Mapeamento simples para acordes básicos (D, G, Bm, etc)
+            // O VexChords desenha o diagrama
+            new veychords.ChordBox(selector, {
+                width: 120,
+                height: 140,
+                circleRadius: 4
+            }).draw({
+                chord: getChordStructure(ac), // Função que define onde colocar os dedos
+                position: 0
             });
+        } catch(e) { console.log("Erro ao desenhar " + ac); }
+    });
+}
 
-            // Comando mágico do jTab para renderizar os desenhos agora!
-            jtab.renderimplicit();
-        }
+// Função auxiliar para dizer à biblioteca onde colocar os dedos
+function getChordStructure(name) {
+    const chords = {
+        "D": [[1, 2], [2, 3], [3, 2]],
+        "G": [[1, 3], [5, 2], [6, 3]],
+        "A": [[2, 2], [3, 2], [4, 2]],
+        "Bm": [[1, 2, 'p'], [2, 3], [3, 4], [4, 4]],
+        "F#": [[1, 2, 'p'], [2, 3], [3, 4], [4, 4], [5, 4]],
+        "Gm": [[1, 3, 'p'], [4, 5], [5, 5]]
+    };
+    return chords[name] || []; // Se não conhecer o acorde, desenha o braço vazio
+}
 
         function voltar() {
             document.getElementById('sessao-lista').style.display = 'block';
