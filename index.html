@@ -3,146 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Site de Cifras 🎸</title>
+    <title>SextaCorda - Suas Cifras Online 🎸</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Estilização Básica */
+        :root {
+            --primary: #e67e22;
+            --dark: #2c3e50;
+            --bg: #f4f7f6;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg);
             margin: 0;
-            padding: 20px;
-            color: #333;
+            padding: 0;
+            color: var(--dark);
         }
 
         header {
+            background-color: var(--dark);
+            color: white;
+            padding: 2rem 1rem;
             text-align: center;
-            margin-bottom: 30px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
-        .search-container {
+        .search-area {
             max-width: 600px;
-            margin: 0 auto 30px;
-            display: flex;
-            gap: 10px;
+            margin: -25px auto 30px;
+            padding: 0 15px;
         }
 
         input[type="text"] {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
+            width: 100%;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             font-size: 16px;
+            outline: none;
         }
 
         #lista-cifras {
             max-width: 800px;
             margin: 0 auto;
+            padding: 0 15px 50px;
         }
 
         .cifra-card {
             background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border-left: 5px solid var(--primary);
+            transition: transform 0.2s;
         }
 
         .cifra-card h3 {
-            margin-top: 0;
-            color: #1a73e8;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
+            margin: 0 0 15px 0;
+            color: var(--dark);
+            font-size: 1.4rem;
+        }
+
+        .cifra-card small {
+            display: block;
+            color: #7f8c8d;
+            margin-top: -10px;
+            margin-bottom: 15px;
+            font-weight: 600;
         }
 
         pre {
-            background-color: #f9f9f9;
+            background-color: #fafafa;
             padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto; /* Scroll se a cifra for larga */
+            border-radius: 8px;
+            overflow-x: auto;
             font-family: 'Courier New', Courier, monospace;
-            line-height: 1.5;
-            font-size: 1.1rem;
-            white-space: pre-wrap; /* Quebra linha se necessário no celular */
+            line-height: 1.7;
+            font-size: 1.05rem;
+            color: #333;
+            border: 1px solid #eee;
         }
 
-        /* Destaque para os acordes (isso assume que você colocou <b> nos acordes ao salvar) */
-        b { color: #e67e22; }
-
-        .loading { text-align: center; font-style: italic; color: #666; }
+        .loading { text-align: center; margin-top: 50px; color: #95a5a6; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>🎸 Minha Biblioteca de Cifras</h1>
-        <p>Aprenda suas músicas favoritas</p>
+        <h1>🎸 SextaCorda</h1>
+        <p>Encontre sua música e comece a tocar</p>
     </header>
 
-    <div class="search-container">
-        <input type="text" id="inputBusca" placeholder="Buscar por música ou artista..." onkeyup="filtrarCifras()">
+    <div class="search-area">
+        <input type="text" id="inputBusca" placeholder="Qual música você quer tocar hoje?" onkeyup="filtrarCifras()">
     </div>
 
     <div id="lista-cifras">
-        <p class="loading">Carregando cifras...</p>
+        <p class="loading">Sintonizando as cordas (carregando)...</p>
     </div>
 
     <script>
-        // --- CONFIGURAÇÃO DO SUPABASE ---
-        // Substitua pelos seus dados reais do painel do Supabase
-        const SUPABASE_URL = 'SUA_URL_AQUI'; 
-        const SUPABASE_KEY = 'SUA_CHAVE_ANON_AQUI';
+        // CONFIGURAÇÃO REAL DO SEU SUPABASE
+        const SUPABASE_URL = 'https://pqqlakirbslqxmcwfoje.supabase.co'; 
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxcWxha2lyYnNscXhtY3dmb2plIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MDk0ODMsImV4cCI6MjA4OTE4NTQ4M30.bWThqwnUHvLW1N4QMIahemIzLQ0qfoQeGkU2q-ZIRQU';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let todasAsCifras = []; // Guardaremos os dados aqui para a busca rápida
+        let bancoDeCifras = [];
 
-        // --- BUSCAR DADOS DO BANCO ---
-        async function buscarCifras() {
-            const listaDiv = document.getElementById('lista-cifras');
-            
+        async function carregarCifras() {
             const { data, error } = await _supabase
-                .from('cifras') // Nome da tabela que você criou
+                .from('cifras')
                 .select('*')
                 .order('titulo', { ascending: true });
 
             if (error) {
-                listaDiv.innerHTML = `<p style="color:red">Erro ao carregar: ${error.message}</p>`;
+                document.getElementById('lista-cifras').innerHTML = "Erro ao conectar com o banco.";
                 return;
             }
 
-            todasAsCifras = data;
-            renderizarCifras(todasAsCifras);
+            bancoDeCifras = data;
+            exibirCifras(data);
         }
 
-        // --- DESENHAR AS CIFRAS NA TELA ---
-        function renderizarCifras(lista) {
-            const listaDiv = document.getElementById('lista-cifras');
-            
+        function exibirCifras(lista) {
+            const container = document.getElementById('lista-cifras');
             if (lista.length === 0) {
-                listaDiv.innerHTML = '<p class="loading">Nenhuma cifra encontrada. 😕</p>';
+                container.innerHTML = '<p class="loading">Nenhuma música encontrada por aqui ainda. 🪕</p>';
                 return;
             }
 
-            listaDiv.innerHTML = lista.map(cifra => `
+            container.innerHTML = lista.map(item => `
                 <div class="cifra-card">
-                    <h3>${cifra.titulo} - <small>${cifra.artista}</small></h3>
-                    <pre>${cifra.conteudo}</pre>
+                    <h3>${item.titulo}</h3>
+                    <small>Artista: ${item.artista}</small>
+                    <pre>${item.conteudo}</pre>
                 </div>
             `).join('');
         }
 
-        // --- LÓGICA DE BUSCA (FILTRO) ---
         function filtrarCifras() {
-            const termo = document.getElementById('inputBusca').value.toLowerCase();
-            const filtradas = todasAsCifras.filter(c => 
-                c.titulo.toLowerCase().includes(termo) || 
-                c.artista.toLowerCase().includes(termo)
+            const busca = document.getElementById('inputBusca').value.toLowerCase();
+            const resultados = bancoDeCifras.filter(c => 
+                c.titulo.toLowerCase().includes(busca) || 
+                c.artista.toLowerCase().includes(busca)
             );
-            renderizarCifras(filtradas);
+            exibirCifras(resultados);
         }
 
-        // Iniciar a busca quando a página abrir
-        buscarCifras();
+        carregarCifras();
     </script>
 </body>
 </html>
