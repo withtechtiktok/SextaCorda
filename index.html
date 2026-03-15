@@ -4,38 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sexta Corda - Cifras 🎸</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" type="text/css" href="https://jtab.t-0.it/css/jtab.css">
+    <script src="https://jtab.t-0.it/js/jtab.js"></script>
+
     <style>
         :root { --primary: #d35400; --dark: #1a1a1a; --bg: #fdfdfd; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; color: var(--dark); }
-        header { background: var(--dark); color: white; padding: 30px 1rem; text-align: center; cursor: pointer; border-bottom: 4px solid var(--primary); }
-        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        header { background: var(--dark); color: white; padding: 30px 1rem; text-align: center; border-bottom: 4px solid var(--primary); }
+        .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
         
-        input[type="text"] { 
-            width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #eee; 
-            margin-top: -30px; margin-bottom: 25px; box-sizing: border-box; font-size: 16px;
-        }
+        /* Lista de Músicas */
+        input[type="text"] { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #eee; margin-top: -30px; margin-bottom: 25px; box-sizing: border-box; }
+        .musica-item { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; cursor: pointer; display: flex; justify-content: space-between; border: 1px solid #eee; }
 
-        .musica-item { 
-            background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px;
-            cursor: pointer; display: flex; justify-content: space-between; border: 1px solid #eee;
-        }
+        /* Layout Duas Colunas */
+        .cifra-layout { display: flex; gap: 30px; display: none; }
+        .cifra-principal { flex: 2; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .sidebar-acordes { flex: 1; background: #fff; padding: 20px; border-radius: 15px; border: 1px solid #eee; height: fit-content; position: sticky; top: 20px; }
 
-        /* Layout em Duas Colunas para a Cifra */
-        .cifra-layout { display: flex; gap: 20px; display: none; }
-        .cifra-principal { flex: 3; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .sidebar-acordes { flex: 1; background: #f9f9f9; padding: 15px; border-radius: 15px; height: fit-content; border: 1px solid #eee; }
+        pre { background: #fff; padding: 15px; font-family: 'Courier New', monospace; line-height: 1.8; font-size: 1.1rem; white-space: pre-wrap; border: none; }
+        b { color: var(--primary); font-weight: bold; font-size: 1.2rem; }
 
-        pre { 
-            background: #fff; padding: 15px; overflow-x: auto; 
-            font-family: 'Courier New', monospace; line-height: 1.8; font-size: 1.1rem; white-space: pre-wrap;
-        }
-        b { color: var(--primary); font-weight: bold; }
-
-        .acorde-card { text-align: center; margin-bottom: 20px; background: white; padding: 10px; border-radius: 8px; border: 1px solid #eee; }
-        .acorde-card img { width: 100%; max-width: 100px; height: auto; }
+        /* Estilo dos desenhos do jTab */
+        .jtab-container { margin-bottom: 20px; text-align: center; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .jtab-label { font-weight: bold; display: block; margin-bottom: 5px; color: var(--primary); }
         
-        .btn-voltar { background: #eee; border: none; padding: 10px; border-radius: 5px; cursor: pointer; margin-bottom: 15px; font-weight: bold; }
+        .btn-voltar { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-bottom: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -46,19 +42,23 @@
 
     <div class="container">
         <div id="sessao-lista">
-            <input type="text" id="inputBusca" placeholder="🔍 Buscar música..." onkeyup="filtrar()">
+            <input type="text" id="inputBusca" placeholder="🔍 Buscar música ou artista..." onkeyup="filtrar()">
             <div id="lista-cifras"><p style="text-align:center">Conectando ao banco...</p></div>
         </div>
 
         <div id="tela-cifra" class="cifra-layout">
             <div class="cifra-principal">
                 <button class="btn-voltar" onclick="voltar()">← Voltar</button>
-                <h2 id="view-titulo" style="margin:0"></h2>
-                <p id="view-artista" style="color: var(--primary); margin-bottom: 20px;"></p>
+                <h2 id="view-titulo" style="margin:0; font-size: 2rem;"></h2>
+                <p id="view-artista" style="color: var(--primary); font-size: 1.2rem; margin-top: 5px;"></p>
+                <hr style="opacity: 0.1; margin: 20px 0;">
                 <pre id="view-conteudo"></pre>
             </div>
-            <div class="sidebar-acordes" id="sidebar-acordes">
-                </div>
+            
+            <div class="sidebar-acordes">
+                <h3 style="margin-top:0">Dicionário de Acordes</h3>
+                <div id="dicionario-desenhos"></div>
+            </div>
         </div>
     </div>
 
@@ -70,7 +70,7 @@
         async function buscar() {
             const { data, error } = await _supabase.from('cifras').select('*').order('titulo');
             if (error) {
-                document.getElementById('lista-cifras').innerHTML = "Erro: " + error.message;
+                document.getElementById('lista-cifras').innerHTML = "Erro de conexão.";
             } else {
                 dados = data;
                 renderizar(data);
@@ -82,52 +82,49 @@
             div.innerHTML = lista.map(c => `
                 <div class="musica-item" onclick="abrir('${c.id}')">
                     <span><strong>${c.titulo}</strong> - ${c.artista}</span>
-                    <span>➔</span>
+                    <span style="color: var(--primary)">TOCAR ➔</span>
                 </div>
             `).join('');
         }
 
-function abrir(id) {
-    const c = dados.find(x => x.id == id);
-    document.getElementById('sessao-lista').style.display = 'none';
-    document.getElementById('tela-cifra').style.display = 'flex';
-    
-    document.getElementById('view-titulo').innerText = c.titulo;
-    document.getElementById('view-artista').innerText = c.artista;
-    document.getElementById('view-conteudo').innerHTML = c.conteudo;
+        function abrir(id) {
+            const c = dados.find(x => x.id == id);
+            document.getElementById('sessao-lista').style.display = 'none';
+            document.getElementById('tela-cifra').style.display = 'flex';
+            
+            document.getElementById('view-titulo').innerText = c.titulo;
+            document.getElementById('view-artista').innerText = c.artista;
+            document.getElementById('view-conteudo').innerHTML = c.conteudo;
 
-    const sidebar = document.getElementById('sidebar-acordes');
-    sidebar.innerHTML = "<h3>Acordes</h3>";
-    
-    // Procura o que está entre <b> e </b>
-    const encontrados = c.conteudo.match(/<b>(.*?)<\/b>/g) || [];
-    const unicos = [...new Set(encontrados.map(m => m.replace(/<\/?b>/g, '').trim()))];
+            // GERAR DESENHOS COM JTAB
+            const dic = document.getElementById('dicionario-desenhos');
+            dic.innerHTML = "";
+            
+            // Pega os acordes entre <b>
+            const encontrados = c.conteudo.match(/<b>(.*?)<\/b>/g) || [];
+            const unicos = [...new Set(encontrados.map(m => m.replace(/<\/?b>/g, '').trim()))];
 
-    if (unicos.length === 0) {
-        sidebar.innerHTML += "<p style='color:#888; font-size:12px;'>Use &lt;b&gt; nos acordes para ver os desenhos.</p>";
-    }
+            unicos.forEach(ac => {
+                const item = document.createElement('div');
+                item.className = "jtab-container";
+                item.innerHTML = `<span class="jtab-label">${ac}</span><div class="jtab">${ac}</div>`;
+                dic.appendChild(item);
+            });
 
-    unicos.forEach(ac => {
-        // Formata o nome para a API (ex: F#m vira Fsm)
-        const acFormatado = ac.replace('#', 's').replace('+', 'aug');
-        const imgUrl = `https://api.chordify.net/img/diagrams/guitar/${acFormatado}.png`;
-        
-        // Criamos o elemento HTML
-        const card = document.createElement('div');
-        card.className = 'acorde-card';
-        card.innerHTML = `
-            <small><strong>${ac}</strong></small><br>
-            <img src="${imgUrl}" style="width:100%; min-height:50px;" alt="${ac}">
-        `;
-        
-        // Se a imagem falhar, a gente remove apenas o card individual, não apaga tudo
-        card.querySelector('img').onerror = function() {
-            card.remove();
-        };
+            // Comando mágico do jTab para renderizar os desenhos agora!
+            jtab.renderimplicit();
+        }
 
-        sidebar.appendChild(card);
-    });
-}
+        function voltar() {
+            document.getElementById('sessao-lista').style.display = 'block';
+            document.getElementById('tela-cifra').style.display = 'none';
+        }
+
+        function filtrar() {
+            const t = document.getElementById('inputBusca').value.toLowerCase();
+            renderizar(dados.filter(d => d.titulo.toLowerCase().includes(t) || d.artista.toLowerCase().includes(t)));
+        }
+
         buscar();
     </script>
 </body>
