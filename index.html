@@ -3,155 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SextaCorda - Suas Cifras Online 🎸</title>
+    <title>Sexta Corda 🎸</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --primary: #e67e22;
-            --dark: #2c3e50;
-            --bg: #f4f7f6;
+        :root { 
+            --primary: #d35400; /* Laranja queimado, cor de madeira */
+            --dark: #1a1a1a; 
+            --bg: #fdfdfd; 
+        }
+        
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; color: var(--dark); }
+        
+        /* Cabeçalho Estilizado */
+        header { 
+            background: var(--dark); 
+            color: white; 
+            padding: 40px 1rem; 
+            text-align: center; 
+            cursor: pointer;
+            border-bottom: 4px solid var(--primary);
         }
 
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background-color: var(--bg);
-            margin: 0;
-            padding: 0;
-            color: var(--dark);
+        .logo-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            display: inline-block;
         }
 
-        header {
-            background-color: var(--dark);
-            color: white;
-            padding: 2rem 1rem;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        header h1 { margin: 0; font-size: 2.2rem; letter-spacing: 1px; }
+        header p { margin: 5px 0 0; opacity: 0.8; font-style: italic; }
+        
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        
+        /* Busca */
+        input[type="text"] { 
+            width: 100%; padding: 18px; border-radius: 12px; border: 2px solid #eee; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-top: -35px; margin-bottom: 25px;
+            box-sizing: border-box; font-size: 16px; outline: none;
+            transition: border-color 0.3s;
         }
+        input[type="text"]:focus { border-color: var(--primary); }
 
-        .search-area {
-            max-width: 600px;
-            margin: -25px auto 30px;
-            padding: 0 15px;
+        /* Lista de Músicas */
+        .musica-item { 
+            background: white; padding: 18px 25px; border-radius: 12px; 
+            margin-bottom: 12px; cursor: pointer; display: flex; 
+            justify-content: space-between; align-items: center;
+            transition: all 0.2s; border: 1px solid #efefef;
         }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 15px 25px;
-            border: none;
-            border-radius: 50px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            font-size: 16px;
-            outline: none;
+        .musica-item:hover { 
+            transform: translateY(-3px); 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-color: var(--primary);
         }
+        .musica-item strong { font-size: 1.2rem; color: var(--dark); }
+        .musica-item small { color: #888; font-size: 0.9rem; }
 
-        #lista-cifras {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 15px 50px;
+        /* Tela da Cifra Aberta */
+        #tela-cifra { display: none; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .btn-voltar { 
+            background: #f1f1f1; color: var(--dark); border: none; 
+            padding: 12px 20px; border-radius: 8px; cursor: pointer; 
+            margin-bottom: 25px; font-weight: bold; transition: 0.3s;
         }
-
-        .cifra-card {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 25px;
-            border-left: 5px solid var(--primary);
-            transition: transform 0.2s;
+        .btn-voltar:hover { background: #e0e0e0; }
+        
+        pre { 
+            background: #fff; padding: 20px; border-radius: 8px; 
+            overflow-x: auto; font-family: 'Courier New', Courier, monospace; 
+            line-height: 1.8; font-size: 1.15rem; white-space: pre-wrap;
+            border: 1px solid #f0f0f0;
         }
-
-        .cifra-card h3 {
-            margin: 0 0 15px 0;
-            color: var(--dark);
-            font-size: 1.4rem;
-        }
-
-        .cifra-card small {
-            display: block;
-            color: #7f8c8d;
-            margin-top: -10px;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-
-        pre {
-            background-color: #fafafa;
-            padding: 15px;
-            border-radius: 8px;
-            overflow-x: auto;
-            font-family: 'Courier New', Courier, monospace;
-            line-height: 1.7;
-            font-size: 1.05rem;
-            color: #333;
-            border: 1px solid #eee;
-        }
-
-        .loading { text-align: center; margin-top: 50px; color: #95a5a6; }
+        
+        /* Estilo para os acordes (use <b> no cadastro) */
+        b { color: var(--primary); font-weight: bold; font-size: 1.2rem; }
+        
+        .loading { text-align: center; color: #95a5a6; padding: 50px; font-size: 1.1rem; }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>🎸 SextaCorda</h1>
-        <p>Encontre sua música e comece a tocar</p>
+    <header onclick="voltarParaLista()">
+        <div class="logo-icon">🎸</div>
+        <h1>SEXTA CORDA</h1>
+        <p>A base do seu som começa aqui</p>
     </header>
 
-    <div class="search-area">
-        <input type="text" id="inputBusca" placeholder="Qual música você quer tocar hoje?" onkeyup="filtrarCifras()">
-    </div>
+    <div class="container">
+        <div id="sessao-lista">
+            <input type="text" id="inputBusca" placeholder="🔍 Buscar por música ou artista..." onkeyup="filtrar()">
+            <div id="lista-cifras"><p class="loading">Carregando cifras do banco...</p></div>
+        </div>
 
-    <div id="lista-cifras">
-        <p class="loading">Sintonizando as cordas (carregando)...</p>
+        <div id="tela-cifra">
+            <button class="btn-voltar" onclick="voltarParaLista()">← Voltar ao Repertório</button>
+            <h2 id="view-titulo" style="margin-bottom: 5px; font-size: 2rem;"></h2>
+            <h4 id="view-artista" style="color: var(--primary); margin-top: 0; margin-bottom: 20px; font-weight: normal;"></h4>
+            <div style="height: 2px; background: #eee; margin-bottom: 25px;"></div>
+            <pre id="view-conteudo"></pre>
+        </div>
     </div>
 
     <script>
-        // CONFIGURAÇÃO REAL DO SEU SUPABASE
-        const SUPABASE_URL = 'https://pqqlakirbslqxmcwfoje.supabase.co'; 
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxcWxha2lyYnNscXhtY3dmb2plIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MDk0ODMsImV4cCI6MjA4OTE4NTQ4M30.bWThqwnUHvLW1N4QMIahemIzLQ0qfoQeGkU2q-ZIRQU';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const _supabase = supabase.createClient('https://pqqlakirbslqxmcwfoje.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxcWxha2lyYnNscXhtY3dmb2plIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MDk0ODMsImV4cCI6MjA4OTE4NTQ4M30.bWThqwnUHvLW1N4QMIahemIzLQ0qfoQeGkU2q-ZIRQU');
 
-        let bancoDeCifras = [];
+        let todasAsCifras = [];
 
-        async function carregarCifras() {
-            const { data, error } = await _supabase
-                .from('cifras')
-                .select('*')
-                .order('titulo', { ascending: true });
-
-            if (error) {
-                document.getElementById('lista-cifras').innerHTML = "Erro ao conectar com o banco.";
-                return;
+        async function buscar() {
+            const { data, error } = await _supabase.from('cifras').select('*').order('titulo');
+            if (!error) {
+                todasAsCifras = data;
+                renderizar(data);
+            } else {
+                console.error("Erro Supabase:", error);
             }
-
-            bancoDeCifras = data;
-            exibirCifras(data);
         }
 
-        function exibirCifras(lista) {
+        function renderizar(lista) {
             const container = document.getElementById('lista-cifras');
-            if (lista.length === 0) {
-                container.innerHTML = '<p class="loading">Nenhuma música encontrada por aqui ainda. 🪕</p>';
-                return;
+            if(lista.length === 0) { 
+                container.innerHTML = "<p class='loading'>Nenhuma cifra encontrada. Que tal cadastrar uma?</p>"; 
+                return; 
             }
-
+            
             container.innerHTML = lista.map(item => `
-                <div class="cifra-card">
-                    <h3>${item.titulo}</h3>
-                    <small>Artista: ${item.artista}</small>
-                    <pre>${item.conteudo}</pre>
+                <div class="musica-item" onclick="abrirCifra('${item.id}')">
+                    <div>
+                        <strong>${item.titulo}</strong><br>
+                        <small>${item.artista}</small>
+                    </div>
+                    <span style="color: var(--primary); font-weight: bold;">VER ➔</span>
                 </div>
             `).join('');
         }
 
-        function filtrarCifras() {
-            const busca = document.getElementById('inputBusca').value.toLowerCase();
-            const resultados = bancoDeCifras.filter(c => 
-                c.titulo.toLowerCase().includes(busca) || 
-                c.artista.toLowerCase().includes(busca)
-            );
-            exibirCifras(resultados);
+        function abrirCifra(id) {
+            const cifra = todasAsCifras.find(c => c.id == id);
+            document.getElementById('sessao-lista').style.display = 'none';
+            document.getElementById('tela-cifra').style.display = 'block';
+            
+            document.getElementById('view-titulo').innerText = cifra.titulo;
+            document.getElementById('view-artista').innerText = cifra.artista;
+            document.getElementById('view-conteudo').innerHTML = cifra.conteudo;
+            
+            window.scrollTo(0,0);
         }
 
-        carregarCifras();
+        function voltarParaLista() {
+            document.getElementById('sessao-lista').style.display = 'block';
+            document.getElementById('tela-cifra').style.display = 'none';
+        }
+
+        function filtrar() {
+            const t = document.getElementById('inputBusca').value.toLowerCase();
+            const filtradas = todasAsCifras.filter(c => 
+                c.titulo.toLowerCase().includes(t) || 
+                c.artista.toLowerCase().includes(t)
+            );
+            renderizar(filtradas);
+        }
+
+        buscar();
     </script>
 </body>
 </html>
