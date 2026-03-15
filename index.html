@@ -87,43 +87,43 @@
             `).join('');
         }
 
-        function abrir(id) {
-            const c = dados.find(x => x.id == id);
-            document.getElementById('sessao-lista').style.display = 'none';
-            document.getElementById('tela-cifra').style.display = 'flex';
-            
-            document.getElementById('view-titulo').innerText = c.titulo;
-            document.getElementById('view-artista').innerText = c.artista;
-            document.getElementById('view-conteudo').innerHTML = c.conteudo;
+function abrir(id) {
+    const c = dados.find(x => x.id == id);
+    document.getElementById('sessao-lista').style.display = 'none';
+    document.getElementById('tela-cifra').style.display = 'flex';
+    
+    document.getElementById('view-titulo').innerText = c.titulo;
+    document.getElementById('view-artista').innerText = c.artista;
+    document.getElementById('view-conteudo').innerHTML = c.conteudo;
 
-            // Gerar Dicionário de Acordes
-            const sidebar = document.getElementById('sidebar-acordes');
-            sidebar.innerHTML = "<h3>Acordes</h3>";
-            
-            // Procura acordes dentro de <b>
-            const encontrados = c.conteudo.match(/<b>(.*?)<\/b>/g) || [];
-            const unicos = [...new Set(encontrados.map(m => m.replace(/<\/?b>/g, '')))];
+    const sidebar = document.getElementById('sidebar-acordes');
+    sidebar.innerHTML = "<h3>Acordes</h3>";
+    
+    // Procura tudo que está entre <b> e </b>
+    const encontrados = c.conteudo.match(/<b>(.*?)<\/b>/g) || [];
+    
+    // Se não encontrou nenhum <b>, avisa o usuário
+    if (encontrados.length === 0) {
+        sidebar.innerHTML += "<p style='font-size:12px; color: #888;'>Nenhum acorde marcado com &lt;b&gt; encontrado.</p>";
+        return;
+    }
 
-            unicos.forEach(ac => {
-                const linkAcorde = `https://api.chordify.net/img/diagrams/guitar/${ac.replace('#', 's')}.png`;
-                sidebar.innerHTML += `
-                    <div class="acorde-card">
-                        <small>${ac}</small><br>
-                        <img src="${linkAcorde}" onerror="this.parentElement.style.display='none'">
-                    </div>`;
-            });
-        }
+    const unicos = [...new Set(encontrados.map(m => m.replace(/<\/?b>/g, '').trim()))];
 
-        function voltar() {
-            document.getElementById('sessao-lista').style.display = 'block';
-            document.getElementById('tela-cifra').style.display = 'none';
-        }
-
-        function filtrar() {
-            const t = document.getElementById('inputBusca').value.toLowerCase();
-            renderizar(dados.filter(d => d.titulo.toLowerCase().includes(t) || d.artista.toLowerCase().includes(t)));
-        }
-
+    unicos.forEach(ac => {
+        // Ajuste para sustenidos (troca # por s para a API entender)
+        const acBusca = ac.replace('#', 's'); 
+        const linkAcorde = `https://api.chordify.net/img/diagrams/guitar/${acBusca}.png`;
+        
+        sidebar.innerHTML += `
+            <div class="acorde-card" id="card-${acBusca}">
+                <small><strong>${ac}</strong></small><br>
+                <img src="${linkAcorde}" 
+                     style="width:100%;" 
+                     onerror="document.getElementById('card-${acBusca}').style.display='none'">
+            </div>`;
+    });
+}
         buscar();
     </script>
 </body>
