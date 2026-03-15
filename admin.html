@@ -2,45 +2,130 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Painel Admin - TocaAí</title>
+    <title>Sexta Corda - Painel Admin</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: sans-serif; background: #1a1a1a; color: white; padding: 20px; display: flex; justify-content: center; }
-        .box { width: 100%; max-width: 500px; background: #222; padding: 20px; border-radius: 10px; }
+        body { font-family: sans-serif; background: #1a1a1a; color: white; padding: 20px; }
+        .container { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .box { background: #222; padding: 20px; border-radius: 10px; border: 1px solid #333; }
         input, textarea { width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #444; background: #333; color: white; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; background: #e67e22; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; }
-        button:hover { background: #d35400; }
+        button { width: 100%; padding: 12px; background: #e67e22; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        button.btn-delete { background: #c0392b; margin-top: 5px; font-size: 12px; padding: 5px; }
+        
+        /* Lista de Edição */
+        .lista-edit { max-height: 500px; overflow-y: auto; }
+        .item-edit { background: #333; padding: 10px; margin-bottom: 8px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
+        .item-edit span { font-size: 14px; }
+        .btn-edit { background: #3498db; padding: 5px 10px; border-radius: 4px; border: none; color: white; cursor: pointer; }
+        
+        h2 { border-bottom: 2px solid #e67e22; padding-bottom: 10px; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h2>➕ Cadastrar Nova Cifra</h2>
-        <input type="text" id="titulo" placeholder="Nome da Música (ex: Primeiros Erros)">
-        <input type="text" id="artista" placeholder="Artista (ex: Capital Inicial)">
-        <textarea id="conteudo" rows="12" placeholder="Cole a cifra aqui... use <b>C</b> para destacar acordes"></textarea>
-        <button onclick="salvar()">Publicar no Site</button>
+
+    <h1 style="text-align:center">🎸 Sexta Corda - Administração</h1>
+
+    <div class="container">
+        <div class="box">
+            <h2 id="form-title">Adicionar Nova Cifra</h2>
+            <input type="hidden" id="cifra-id"> <input type="text" id="titulo" placeholder="Nome da Música">
+            <input type="text" id="artista" placeholder="Artista">
+            <textarea id="conteudo" rows="15" placeholder="Cole a cifra aqui..."></textarea>
+            <button id="btn-salvar" onclick="salvar()">Salvar Cifra</button>
+            <button id="btn-cancelar" onclick="limparForm()" style="display:none; background:#7f8c8d;">Cancelar Edição</button>
+        </div>
+
+        <div class="box">
+            <h2>Suas Cifras</h2>
+            <div id="lista-gerenciar" class="lista-edit">
+                <p>Carregando...</p>
+            </div>
+        </div>
     </div>
 
     <script>
         const _supabase = supabase.createClient('https://pqqlakirbslqxmcwfoje.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxcWxha2lyYnNscXhtY3dmb2plIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MDk0ODMsImV4cCI6MjA4OTE4NTQ4M30.bWThqwnUHvLW1N4QMIahemIzLQ0qfoQeGkU2q-ZIRQU');
 
+        let cifrasLocais = [];
+
+        // Carregar lista de músicas para o painel
+        async function carregarLista() {
+            const { data, error } = await _supabase.from('cifras').select('*').order('titulo');
+            if (!error) {
+                cifrasLocais = data;
+                const container = document.getElementById('lista-gerenciar');
+                container.innerHTML = data.map(c => `
+                    <div class="item-edit">
+                        <span><strong>${c.titulo}</strong><br><small>${c.artista}</small></span>
+                        <div>
+                            <button class="btn-edit" onclick="prepararEdicao('${c.id}')">✏️</button>
+                            <button class="btn-delete" onclick="deletar('${c.id}')">🗑️</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Função para Salvar (Insert ou Update)
         async function salvar() {
+            const id = document.getElementById('cifra-id').value;
             const t = document.getElementById('titulo').value;
             const a = document.getElementById('artista').value;
             const c = document.getElementById('conteudo').value;
 
-            if(!t || !a || !c) return alert("Preencha tudo!");
+            if(!t || !a || !c) return alert("Preencha todos os campos!");
 
-            const { error } = await _supabase
-                .from('cifras')
-                .insert([{ titulo: t, artista: a, conteudo: c }]);
+            let resposta;
+            if (id) {
+                // Se tem ID, estamos EDITANDO (Update)
+                resposta = await _supabase.from('cifras').update({ titulo: t, artista: a, conteudo: c }).eq('id', id);
+            } else {
+                // Se não tem ID, estamos CRIANDO (Insert)
+                resposta = await _supabase.from('cifras').insert([{ titulo: t, artista: a, conteudo: c }]);
+            }
 
-            if (error) alert("Erro ao salvar: " + error.message);
+            if (resposta.error) alert("Erro: " + resposta.error.message);
             else {
-                alert("Música cadastrada! Atualize seu site principal.");
-                window.location.reload();
+                alert("Sucesso!");
+                limparForm();
+                carregarLista();
             }
         }
+
+        // Preenche o formulário com os dados da cifra para editar
+        function prepararEdicao(id) {
+            const cifra = cifrasLocais.find(c => c.id == id);
+            document.getElementById('cifra-id').value = cifra.id;
+            document.getElementById('titulo').value = cifra.titulo;
+            document.getElementById('artista').value = cifra.artista;
+            document.getElementById('conteudo').value = cifra.conteudo;
+            
+            document.getElementById('form-title').innerText = "Editando Música";
+            document.getElementById('btn-salvar').innerText = "Atualizar Alterações";
+            document.getElementById('btn-cancelar').style.display = 'block';
+            window.scrollTo(0,0);
+        }
+
+        function limparForm() {
+            document.getElementById('cifra-id').value = "";
+            document.getElementById('titulo').value = "";
+            document.getElementById('artista').value = "";
+            document.getElementById('conteudo').value = "";
+            document.getElementById('form-title').innerText = "Adicionar Nova Cifra";
+            document.getElementById('btn-salvar').innerText = "Salvar Cifra";
+            document.getElementById('btn-cancelar').style.display = 'none';
+        }
+
+        async function deletar(id) {
+            if(confirm("Tem certeza que deseja apagar essa música?")) {
+                const { error } = await _supabase.from('cifras').delete().eq('id', id);
+                if (error) alert("Erro ao deletar");
+                else carregarLista();
+            }
+        }
+
+        carregarLista();
     </script>
 </body>
 </html>
