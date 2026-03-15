@@ -22,3 +22,24 @@ b {
     color: #e67e22; /* Cor destaque para os acordes */
     font-weight: bold;
 }
+/* Adicione isso ao seu <style> */
+#visualizador-layout {
+    display: flex;
+    gap: 20px;
+}
+#view-conteudo { flex: 3; }
+#sidebar-acordes { 
+    flex: 1; 
+    background: #eee; 
+    padding: 15px; 
+    border-radius: 10px; 
+    height: fit-content;
+}
+.mini-acorde {
+    text-align: center;
+    margin-bottom: 15px;
+    background: white;
+    padding: 5px;
+    border-radius: 5px;
+}
+.mini-acorde img { width: 100%; max-width: 80px; }

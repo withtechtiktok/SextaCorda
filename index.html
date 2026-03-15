@@ -137,33 +137,35 @@
             `).join('');
         }
 
-        function abrirCifra(id) {
-            const cifra = todasAsCifras.find(c => c.id == id);
-            document.getElementById('sessao-lista').style.display = 'none';
-            document.getElementById('tela-cifra').style.display = 'block';
-            
-            document.getElementById('view-titulo').innerText = cifra.titulo;
-            document.getElementById('view-artista').innerText = cifra.artista;
-            document.getElementById('view-conteudo').innerHTML = cifra.conteudo;
-            
-            window.scrollTo(0,0);
-        }
 
-        function voltarParaLista() {
-            document.getElementById('sessao-lista').style.display = 'block';
-            document.getElementById('tela-cifra').style.display = 'none';
-        }
+            function abrirCifra(id) {
+    const cifra = todasAsCifras.find(c => c.id == id);
+    document.getElementById('sessao-lista').style.display = 'none';
+    document.getElementById('tela-cifra').style.display = 'block';
+    
+    document.getElementById('view-titulo').innerText = cifra.titulo;
+    document.getElementById('view-artista').innerText = cifra.artista;
+    
+    // Mostra a cifra
+    document.getElementById('view-conteudo').innerHTML = cifra.conteudo;
 
-        function filtrar() {
-            const t = document.getElementById('inputBusca').value.toLowerCase();
-            const filtradas = todasAsCifras.filter(c => 
-                c.titulo.toLowerCase().includes(t) || 
-                c.artista.toLowerCase().includes(t)
-            );
-            renderizar(filtradas);
-        }
+    // Lógica para mostrar desenhos de acordes (Exemplo simples)
+    const containerAcordes = document.getElementById('sidebar-acordes');
+    containerAcordes.innerHTML = "<h4>Acordes</h4>";
+    
+    // Pega todos os textos dentro de <b>
+    const matches = cifra.conteudo.match(/<b>(.*?)<\/b>/g) || [];
+    const acordesUnicos = [...new Set(matches.map(m => m.replace(/<\/?b>/g, '')))];
 
-        buscar();
+    acordesUnicos.forEach(acorde => {
+        // Aqui usamos uma API gratuita de imagens de acordes (exemplo)
+        containerAcordes.innerHTML += `
+            <div class="mini-acorde">
+                <p><b>${acorde}</b></p>
+                <img src="https://api.chordify.net/img/diagrams/guitar/${acorde}.png" onerror="this.style.display='none'">
+            </div>`;
+    });
+}
     </script>
 </body>
 </html>
