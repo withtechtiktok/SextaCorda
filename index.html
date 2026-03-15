@@ -99,29 +99,33 @@ function abrir(id) {
     const sidebar = document.getElementById('sidebar-acordes');
     sidebar.innerHTML = "<h3>Acordes</h3>";
     
-    // Procura tudo que está entre <b> e </b>
+    // Procura o que está entre <b> e </b>
     const encontrados = c.conteudo.match(/<b>(.*?)<\/b>/g) || [];
-    
-    // Se não encontrou nenhum <b>, avisa o usuário
-    if (encontrados.length === 0) {
-        sidebar.innerHTML += "<p style='font-size:12px; color: #888;'>Nenhum acorde marcado com &lt;b&gt; encontrado.</p>";
-        return;
-    }
-
     const unicos = [...new Set(encontrados.map(m => m.replace(/<\/?b>/g, '').trim()))];
 
+    if (unicos.length === 0) {
+        sidebar.innerHTML += "<p style='color:#888; font-size:12px;'>Use &lt;b&gt; nos acordes para ver os desenhos.</p>";
+    }
+
     unicos.forEach(ac => {
-        // Ajuste para sustenidos (troca # por s para a API entender)
-        const acBusca = ac.replace('#', 's'); 
-        const linkAcorde = `https://api.chordify.net/img/diagrams/guitar/${acBusca}.png`;
+        // Formata o nome para a API (ex: F#m vira Fsm)
+        const acFormatado = ac.replace('#', 's').replace('+', 'aug');
+        const imgUrl = `https://api.chordify.net/img/diagrams/guitar/${acFormatado}.png`;
         
-        sidebar.innerHTML += `
-            <div class="acorde-card" id="card-${acBusca}">
-                <small><strong>${ac}</strong></small><br>
-                <img src="${linkAcorde}" 
-                     style="width:100%;" 
-                     onerror="document.getElementById('card-${acBusca}').style.display='none'">
-            </div>`;
+        // Criamos o elemento HTML
+        const card = document.createElement('div');
+        card.className = 'acorde-card';
+        card.innerHTML = `
+            <small><strong>${ac}</strong></small><br>
+            <img src="${imgUrl}" style="width:100%; min-height:50px;" alt="${ac}">
+        `;
+        
+        // Se a imagem falhar, a gente remove apenas o card individual, não apaga tudo
+        card.querySelector('img').onerror = function() {
+            card.remove();
+        };
+
+        sidebar.appendChild(card);
     });
 }
         buscar();
