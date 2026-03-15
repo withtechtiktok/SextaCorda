@@ -1,0 +1,24 @@
+<form id="form-cifra">
+    <input type="text" id="titulo" placeholder="Título da Música" required>
+    <input type="text" id="artista" placeholder="Nome do Artista" required>
+    <textarea id="conteudo" placeholder="Cole a cifra aqui..." rows="10"></textarea>
+    <button type="submit">Salvar Cifra</button>
+    <link rel="stylesheet" href="style.css">
+</form>
+
+<script>
+    // Lógica para enviar os dados
+    const form = document.getElementById('form-cifra');
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        const { error } = await supabase
+            .from('cifras')
+            .insert([{ 
+                titulo: document.getElementById('titulo').value,
+                artista: document.getElementById('artista').value,
+                conteudo: document.getElementById('conteudo').value 
+            }]);
+        
+        if (!error) alert('Cifra salva com sucesso!');
+    };
+</script>
