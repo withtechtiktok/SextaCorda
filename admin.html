@@ -1,24 +1,46 @@
-<form id="form-cifra">
-    <input type="text" id="titulo" placeholder="Título da Música" required>
-    <input type="text" id="artista" placeholder="Nome do Artista" required>
-    <textarea id="conteudo" placeholder="Cole a cifra aqui..." rows="10"></textarea>
-    <button type="submit">Salvar Cifra</button>
-    <link rel="stylesheet" href="style.css">
-</form>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel Admin - TocaAí</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; background: #1a1a1a; color: white; padding: 20px; display: flex; justify-content: center; }
+        .box { width: 100%; max-width: 500px; background: #222; padding: 20px; border-radius: 10px; }
+        input, textarea { width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #444; background: #333; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: #e67e22; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        button:hover { background: #d35400; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>➕ Cadastrar Nova Cifra</h2>
+        <input type="text" id="titulo" placeholder="Nome da Música (ex: Primeiros Erros)">
+        <input type="text" id="artista" placeholder="Artista (ex: Capital Inicial)">
+        <textarea id="conteudo" rows="12" placeholder="Cole a cifra aqui... use <b>C</b> para destacar acordes"></textarea>
+        <button onclick="salvar()">Publicar no Site</button>
+    </div>
 
-<script>
-    // Lógica para enviar os dados
-    const form = document.getElementById('form-cifra');
-    form.onsubmit = async (e) => {
-        e.preventDefault();
-        const { error } = await supabase
-            .from('cifras')
-            .insert([{ 
-                titulo: document.getElementById('titulo').value,
-                artista: document.getElementById('artista').value,
-                conteudo: document.getElementById('conteudo').value 
-            }]);
-        
-        if (!error) alert('Cifra salva com sucesso!');
-    };
-</script>
+    <script>
+        const _supabase = supabase.createClient('https://pqqlakirbslqxmcwfoje.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxcWxha2lyYnNscXhtY3dmb2plIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MDk0ODMsImV4cCI6MjA4OTE4NTQ4M30.bWThqwnUHvLW1N4QMIahemIzLQ0qfoQeGkU2q-ZIRQU');
+
+        async function salvar() {
+            const t = document.getElementById('titulo').value;
+            const a = document.getElementById('artista').value;
+            const c = document.getElementById('conteudo').value;
+
+            if(!t || !a || !c) return alert("Preencha tudo!");
+
+            const { error } = await _supabase
+                .from('cifras')
+                .insert([{ titulo: t, artista: a, conteudo: c }]);
+
+            if (error) alert("Erro ao salvar: " + error.message);
+            else {
+                alert("Música cadastrada! Atualize seu site principal.");
+                window.location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
