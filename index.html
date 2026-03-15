@@ -3,169 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sexta Corda - Cifras de Violão 🎸</title>
+    <title>Sexta Corda - Cifras 🎸</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { 
-            --primary: #d35400; /* Laranja queimado, cor de madeira */
-            --dark: #1a1a1a; 
-            --bg: #fdfdfd; 
-        }
-        
+        :root { --primary: #d35400; --dark: #1a1a1a; --bg: #fdfdfd; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; color: var(--dark); }
+        header { background: var(--dark); color: white; padding: 30px 1rem; text-align: center; cursor: pointer; border-bottom: 4px solid var(--primary); }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
         
-        /* Cabeçalho Estilizado */
-        header { 
-            background: var(--dark); 
-            color: white; 
-            padding: 40px 1rem; 
-            text-align: center; 
-            cursor: pointer;
-            border-bottom: 4px solid var(--primary);
-        }
-
-        .logo-icon {
-            font-size: 3rem;
-            margin-bottom: 10px;
-            display: inline-block;
-        }
-
-        header h1 { margin: 0; font-size: 2.2rem; letter-spacing: 1px; }
-        header p { margin: 5px 0 0; opacity: 0.8; font-style: italic; }
-        
-        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
-        
-        /* Busca */
         input[type="text"] { 
-            width: 100%; padding: 18px; border-radius: 12px; border: 2px solid #eee; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-top: -35px; margin-bottom: 25px;
-            box-sizing: border-box; font-size: 16px; outline: none;
-            transition: border-color 0.3s;
+            width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #eee; 
+            margin-top: -30px; margin-bottom: 25px; box-sizing: border-box; font-size: 16px;
         }
-        input[type="text"]:focus { border-color: var(--primary); }
 
-        /* Lista de Músicas */
         .musica-item { 
-            background: white; padding: 18px 25px; border-radius: 12px; 
-            margin-bottom: 12px; cursor: pointer; display: flex; 
-            justify-content: space-between; align-items: center;
-            transition: all 0.2s; border: 1px solid #efefef;
+            background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px;
+            cursor: pointer; display: flex; justify-content: space-between; border: 1px solid #eee;
         }
-        .musica-item:hover { 
-            transform: translateY(-3px); 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            border-color: var(--primary);
-        }
-        .musica-item strong { font-size: 1.2rem; color: var(--dark); }
-        .musica-item small { color: #888; font-size: 0.9rem; }
 
-        /* Tela da Cifra Aberta */
-        #tela-cifra { display: none; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .btn-voltar { 
-            background: #f1f1f1; color: var(--dark); border: none; 
-            padding: 12px 20px; border-radius: 8px; cursor: pointer; 
-            margin-bottom: 25px; font-weight: bold; transition: 0.3s;
-        }
-        .btn-voltar:hover { background: #e0e0e0; }
-        
+        /* Layout em Duas Colunas para a Cifra */
+        .cifra-layout { display: flex; gap: 20px; display: none; }
+        .cifra-principal { flex: 3; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .sidebar-acordes { flex: 1; background: #f9f9f9; padding: 15px; border-radius: 15px; height: fit-content; border: 1px solid #eee; }
+
         pre { 
-            background: #fff; padding: 20px; border-radius: 8px; 
-            overflow-x: auto; font-family: 'Courier New', Courier, monospace; 
-            line-height: 1.8; font-size: 1.15rem; white-space: pre-wrap;
-            border: 1px solid #f0f0f0;
+            background: #fff; padding: 15px; overflow-x: auto; 
+            font-family: 'Courier New', monospace; line-height: 1.8; font-size: 1.1rem; white-space: pre-wrap;
         }
+        b { color: var(--primary); font-weight: bold; }
+
+        .acorde-card { text-align: center; margin-bottom: 20px; background: white; padding: 10px; border-radius: 8px; border: 1px solid #eee; }
+        .acorde-card img { width: 100%; max-width: 100px; height: auto; }
         
-        /* Estilo para os acordes (use <b> no cadastro) */
-        b { color: var(--primary); font-weight: bold; font-size: 1.2rem; }
-        
-        .loading { text-align: center; color: #95a5a6; padding: 50px; font-size: 1.1rem; }
+        .btn-voltar { background: #eee; border: none; padding: 10px; border-radius: 5px; cursor: pointer; margin-bottom: 15px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <header onclick="voltarParaLista()">
-        <div class="logo-icon">🎸</div>
-        <h1>SEXTA CORDA</h1>
-        <p>A base do seu som começa aqui</p>
+    <header onclick="window.location.reload()">
+        <h1>🎸 SEXTA CORDA</h1>
     </header>
 
     <div class="container">
         <div id="sessao-lista">
-            <input type="text" id="inputBusca" placeholder="🔍 Buscar por música ou artista..." onkeyup="filtrar()">
-            <div id="lista-cifras"><p class="loading">Carregando cifras do banco...</p></div>
+            <input type="text" id="inputBusca" placeholder="🔍 Buscar música..." onkeyup="filtrar()">
+            <div id="lista-cifras"><p style="text-align:center">Conectando ao banco...</p></div>
         </div>
 
-        <div id="tela-cifra">
-            <button class="btn-voltar" onclick="voltarParaLista()">← Voltar ao Repertório</button>
-            <h2 id="view-titulo" style="margin-bottom: 5px; font-size: 2rem;"></h2>
-            <h4 id="view-artista" style="color: var(--primary); margin-top: 0; margin-bottom: 20px; font-weight: normal;"></h4>
-            <div style="height: 2px; background: #eee; margin-bottom: 25px;"></div>
-            <pre id="view-conteudo"></pre>
+        <div id="tela-cifra" class="cifra-layout">
+            <div class="cifra-principal">
+                <button class="btn-voltar" onclick="voltar()">← Voltar</button>
+                <h2 id="view-titulo" style="margin:0"></h2>
+                <p id="view-artista" style="color: var(--primary); margin-bottom: 20px;"></p>
+                <pre id="view-conteudo"></pre>
+            </div>
+            <div class="sidebar-acordes" id="sidebar-acordes">
+                </div>
         </div>
     </div>
 
     <script>
         const _supabase = supabase.createClient('https://pqqlakirbslqxmcwfoje.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxcWxha2lyYnNscXhtY3dmb2plIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MDk0ODMsImV4cCI6MjA4OTE4NTQ4M30.bWThqwnUHvLW1N4QMIahemIzLQ0qfoQeGkU2q-ZIRQU');
 
-        let todasAsCifras = [];
+        let dados = [];
 
         async function buscar() {
             const { data, error } = await _supabase.from('cifras').select('*').order('titulo');
-            if (!error) {
-                todasAsCifras = data;
-                renderizar(data);
+            if (error) {
+                document.getElementById('lista-cifras').innerHTML = "Erro: " + error.message;
             } else {
-                console.error("Erro Supabase:", error);
+                dados = data;
+                renderizar(data);
             }
         }
 
         function renderizar(lista) {
-            const container = document.getElementById('lista-cifras');
-            if(lista.length === 0) { 
-                container.innerHTML = "<p class='loading'>Nenhuma cifra encontrada. Que tal cadastrar uma?</p>"; 
-                return; 
-            }
-            
-            container.innerHTML = lista.map(item => `
-                <div class="musica-item" onclick="abrirCifra('${item.id}')">
-                    <div>
-                        <strong>${item.titulo}</strong><br>
-                        <small>${item.artista}</small>
-                    </div>
-                    <span style="color: var(--primary); font-weight: bold;">VER ➔</span>
+            const div = document.getElementById('lista-cifras');
+            div.innerHTML = lista.map(c => `
+                <div class="musica-item" onclick="abrir('${c.id}')">
+                    <span><strong>${c.titulo}</strong> - ${c.artista}</span>
+                    <span>➔</span>
                 </div>
             `).join('');
         }
 
+        function abrir(id) {
+            const c = dados.find(x => x.id == id);
+            document.getElementById('sessao-lista').style.display = 'none';
+            document.getElementById('tela-cifra').style.display = 'flex';
+            
+            document.getElementById('view-titulo').innerText = c.titulo;
+            document.getElementById('view-artista').innerText = c.artista;
+            document.getElementById('view-conteudo').innerHTML = c.conteudo;
 
-            function abrirCifra(id) {
-    const cifra = todasAsCifras.find(c => c.id == id);
-    document.getElementById('sessao-lista').style.display = 'none';
-    document.getElementById('tela-cifra').style.display = 'block';
-    
-    document.getElementById('view-titulo').innerText = cifra.titulo;
-    document.getElementById('view-artista').innerText = cifra.artista;
-    
-    // Mostra a cifra
-    document.getElementById('view-conteudo').innerHTML = cifra.conteudo;
+            // Gerar Dicionário de Acordes
+            const sidebar = document.getElementById('sidebar-acordes');
+            sidebar.innerHTML = "<h3>Acordes</h3>";
+            
+            // Procura acordes dentro de <b>
+            const encontrados = c.conteudo.match(/<b>(.*?)<\/b>/g) || [];
+            const unicos = [...new Set(encontrados.map(m => m.replace(/<\/?b>/g, '')))];
 
-    // Lógica para mostrar desenhos de acordes (Exemplo simples)
-    const containerAcordes = document.getElementById('sidebar-acordes');
-    containerAcordes.innerHTML = "<h4>Acordes</h4>";
-    
-    // Pega todos os textos dentro de <b>
-    const matches = cifra.conteudo.match(/<b>(.*?)<\/b>/g) || [];
-    const acordesUnicos = [...new Set(matches.map(m => m.replace(/<\/?b>/g, '')))];
+            unicos.forEach(ac => {
+                const linkAcorde = `https://api.chordify.net/img/diagrams/guitar/${ac.replace('#', 's')}.png`;
+                sidebar.innerHTML += `
+                    <div class="acorde-card">
+                        <small>${ac}</small><br>
+                        <img src="${linkAcorde}" onerror="this.parentElement.style.display='none'">
+                    </div>`;
+            });
+        }
 
-    acordesUnicos.forEach(acorde => {
-        // Aqui usamos uma API gratuita de imagens de acordes (exemplo)
-        containerAcordes.innerHTML += `
-            <div class="mini-acorde">
-                <p><b>${acorde}</b></p>
-                <img src="https://api.chordify.net/img/diagrams/guitar/${acorde}.png" onerror="this.style.display='none'">
-            </div>`;
-    });
-}
+        function voltar() {
+            document.getElementById('sessao-lista').style.display = 'block';
+            document.getElementById('tela-cifra').style.display = 'none';
+        }
+
+        function filtrar() {
+            const t = document.getElementById('inputBusca').value.toLowerCase();
+            renderizar(dados.filter(d => d.titulo.toLowerCase().includes(t) || d.artista.toLowerCase().includes(t)));
+        }
+
+        buscar();
     </script>
 </body>
 </html>
